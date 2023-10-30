@@ -1,8 +1,8 @@
 # shortcutcleaner
 
-A basic javafx app to scan desktop for dead shortcuts
+A basic javafx app to scan desktop for dead shortcuts (shortcuts with original file missing)
 
-Run by opening the folder where the file is saved in CMD and using the command 
-```
-java -jar shortcutcleaner.jar
-```
+Extract the zip and run the bat file to use.
+
+The scan button will scan for dead shortcuts
+The delete button will delete all listed dead shortcuts
