@@ -27,11 +27,17 @@ public class ScanWindowController {
     @FXML private TextArea list;
     @FXML private TextField pathTextField;
 
+    private String desktopPath;
+    private String userStartPath;
+    private String systemStartPath;
+
     @FXML
     private void initialize(){
         console.setEditable(false);
         list.setEditable(false);
-        String desktopPath = System.getProperty("user.home") + File.separator +"Desktop";
+        desktopPath = System.getProperty("user.home") + File.separator +"Desktop";
+        userStartPath = System.getenv("APPDATA") + File.separator + "Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
+        systemStartPath = System.getenv("ALLUSERSPROFILE") + File.separator +"Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
         pathTextField.setText(desktopPath);
     }
 
@@ -39,7 +45,6 @@ public class ScanWindowController {
         for (File f : file.listFiles()) {
             try{
 if (f.isDirectory()) {
-                System.out.println("Directory: " + f.getName());
                 listAllFiles(f);
             }else {
                 files.add(f);
@@ -54,7 +59,6 @@ if (f.isDirectory()) {
 
     private void scanShortcuts(List<File> files){
         for (File f : files) {
-            System.out.println(f.getName());
             if (f.getName().endsWith(".lnk")) {
                 try {
                     ShellLink sl = new ShellLink(f);
@@ -83,9 +87,7 @@ if (f.isDirectory()) {
     @FXML
     private void onScanButton(){
         String pathString = pathTextField.getText();
-        scanButton.setDisable(true);
-        deleteButton.setDisable(true);
-        folderButton.setDisable(true);
+        disableAllButtons();
         console.appendText("Scanning: "+ pathString + "\n");
         try{
             files.clear();
@@ -99,22 +101,18 @@ if (f.isDirectory()) {
             console.appendText("Error: Invalid path\n\n");
         }
                 
-        scanButton.setDisable(false);
-        deleteButton.setDisable(false);
-        folderButton.setDisable(false);
+        enableAllButtons();
     }
     @FXML
     private void onDeleteButton(){
-        deleteButton.setDisable(true);
-        scanButton.setDisable(true);
+        disableAllButtons();
         int deleteCounter = 0;
         for (File f : filesToDelete) {
             f.delete();
             deleteCounter++;
         }
         filesToDelete.clear();
-        deleteButton.setDisable(false);
-        scanButton.setDisable(false);
+        enableAllButtons();
         console.appendText("Deleted " + deleteCounter + " shortcuts\n\n");
         list.clear();
         
@@ -124,6 +122,11 @@ if (f.isDirectory()) {
     private void onFolderButtonClicked(){
         //open folder dialogue 
         DirectoryChooser directoryChooser = new DirectoryChooser();
+        if(new File(pathTextField.getText()).exists()){
+            directoryChooser.setInitialDirectory(new File(pathTextField.getText()));
+        } else {
+            directoryChooser.setInitialDirectory(new File(desktopPath));
+        }
         directoryChooser.setTitle("Select Folder");
         File selectedDirectory = directoryChooser.showDialog(null);
         if(selectedDirectory == null){
@@ -144,15 +147,25 @@ if (f.isDirectory()) {
 
     @FXML
     private void onUserStartSelected(){
-        String userStartPath = System.getenv("APPDATA") + File.separator + "Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
         pathTextField.setText(userStartPath);
         console.appendText("Selected: " + userStartPath + "\n\n");
     }
 
     @FXML
     private void onSystemStartSelected(){
-        String systemStartPath = System.getenv("ALLUSERSPROFILE") + File.separator +"Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
         pathTextField.setText(systemStartPath);
         console.appendText("Selected: " + systemStartPath + "\n\n");
+    }
+
+    private void disableAllButtons(){
+        scanButton.setDisable(true);
+        deleteButton.setDisable(true);
+        folderButton.setDisable(true);
+    }
+
+    private void enableAllButtons(){
+        scanButton.setDisable(false);
+        deleteButton.setDisable(false);
+        folderButton.setDisable(false);
     }
 }
