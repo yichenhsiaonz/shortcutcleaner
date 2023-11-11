@@ -34,8 +34,12 @@ public class ScanWindowController {
 
     @FXML
     private void initialize(){
+        // set text areas to read only
         console.setEditable(false);
         list.setEditable(false);
+
+
+        // set default paths
         userDesktopPath = System.getProperty("user.home") + File.separator +"Desktop";
         systemDesktopPath = System.getenv("PUBLIC") + File.separator +"Desktop";
         userStartPath = System.getenv("APPDATA") + File.separator + "Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
@@ -43,13 +47,15 @@ public class ScanWindowController {
         pathTextField.setText(userDesktopPath);
     }
 
-    private void listAllFiles(File file){
+    private void listAllFiles(File directiory){
         Platform.runLater(() -> {
-            console.appendText("Scanning: " + file.getName() + "\n");
+            console.appendText("Scanning: " + directiory.getName() + "\n");
         });
-        for (File f : file.listFiles()) {
+        // loop through all files in directory "directory"
+        for (File f : directiory.listFiles()) {
             try{
                 if (f.isDirectory()) {
+                    // if file is a directory, call this method recursively
                     listAllFiles(f);
                 } else {
                     files.add(f);
@@ -68,9 +74,11 @@ public class ScanWindowController {
         for (File f : files) {
             if (f.getName().endsWith(".lnk")) {
                 try {
+                    // use mslinks library to resolve shortcut target
                     ShellLink sl = new ShellLink(f);
                     String targetPathString = sl.resolveTarget();
                     File targetFile = new File(targetPathString);
+                    // if the target does not exist and the shortcut is to an exe file, add it to the list of shortcuts to delete
                     if (!targetFile.isFile() && targetPathString.endsWith(".exe")) {
                         Platform.runLater(() -> {
                             try{
@@ -95,7 +103,7 @@ public class ScanWindowController {
             }
         }
         if(filesToDelete.size() == 0){
-            console.appendText("No shortcuts found\n\n");
+            console.appendText("No dead shortcuts found\n\n");
         }
     }
 
@@ -109,6 +117,7 @@ public class ScanWindowController {
             @Override
             protected Void call() throws Exception {
                 try{
+                    // check if path is valid
                     File folderToScan = new File(pathString); 
                     if(!folderToScan.exists()){
                         throw new Exception();
@@ -148,6 +157,7 @@ public class ScanWindowController {
     private void onFolderButtonClicked(){
         //open folder dialogue 
         DirectoryChooser directoryChooser = new DirectoryChooser();
+        // set initial directory to the path in the text field if it exists, otherwise set it to the user's desktop
         if(new File(pathTextField.getText()).exists()){
             directoryChooser.setInitialDirectory(new File(pathTextField.getText()));
         } else {
@@ -155,8 +165,10 @@ public class ScanWindowController {
         }
         directoryChooser.setTitle("Select Folder");
         File selectedDirectory = directoryChooser.showDialog(null);
+        // if no directory is selected, do nothing
         if(selectedDirectory == null){
             console.appendText("No Directory selected\n\n");
+        // if a directory is selected, set the text field to the path of the selected directory
         } else {
             pathTextField.setText(selectedDirectory.getAbsolutePath());
             console.appendText("Selected: " + selectedDirectory.getAbsolutePath() + "\n\n");

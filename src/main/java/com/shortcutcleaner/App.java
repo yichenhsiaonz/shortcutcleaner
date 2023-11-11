@@ -26,7 +26,7 @@ public class App extends Application{
     @Override
     public void start(Stage stage) throws IOException {
         scene = new Scene(loadFXML("scanwindow"));
-        stage.setMinWidth(600);
+        stage.setMinWidth(615);
         stage.setMinHeight(400);
         stage.setTitle("Shortcut Cleaner");
         stage.setScene(scene);
