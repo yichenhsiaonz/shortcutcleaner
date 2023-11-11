@@ -40,7 +40,8 @@
             </TextField>
             <SplitMenuButton fx:id="folderButton" mnemonicParsing="false" onAction="#onFolderButtonClicked" text="Folder...">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#onDesktopSelected" text="Desktop" />
+                <MenuItem mnemonicParsing="false" onAction="#onUserDesktopSelected" text="User Desktop" />
+                  <MenuItem mnemonicParsing="false" onAction="#onSystemDesktopSelected" text="System Desktop" />
                 <MenuItem mnemonicParsing="false" onAction="#onUserStartSelected" text="User Start Menu" />
                   <MenuItem mnemonicParsing="false" onAction="#onSystemStartSelected" text="System Start Menu" />
               </items>
