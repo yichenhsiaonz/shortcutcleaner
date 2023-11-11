@@ -27,7 +27,8 @@ public class ScanWindowController {
     @FXML private TextArea list;
     @FXML private TextField pathTextField;
 
-    private String desktopPath;
+    private String userDesktopPath;
+    private String systemDesktopPath;
     private String userStartPath;
     private String systemStartPath;
 
@@ -35,23 +36,29 @@ public class ScanWindowController {
     private void initialize(){
         console.setEditable(false);
         list.setEditable(false);
-        desktopPath = System.getProperty("user.home") + File.separator +"Desktop";
+        userDesktopPath = System.getProperty("user.home") + File.separator +"Desktop";
+        systemDesktopPath = System.getenv("PUBLIC") + File.separator +"Desktop";
         userStartPath = System.getenv("APPDATA") + File.separator + "Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
         systemStartPath = System.getenv("ALLUSERSPROFILE") + File.separator +"Microsoft" + File.separator + "Windows" + File.separator + "Start Menu" + File.separator + "Programs";
-        pathTextField.setText(desktopPath);
+        pathTextField.setText(userDesktopPath);
     }
 
     private void listAllFiles(File file){
+        Platform.runLater(() -> {
+            console.appendText("Scanning: " + file.getName() + "\n");
+        });
         for (File f : file.listFiles()) {
             try{
-if (f.isDirectory()) {
-                listAllFiles(f);
-            }else {
-                files.add(f);
-            }
+                if (f.isDirectory()) {
+                    listAllFiles(f);
+                } else {
+                    files.add(f);
+                }
             } catch(Exception e) {
-                console.appendText("Error: " + f.getName() + " Please check manually\n"
-                +"at " + f.getAbsolutePath() + "\n");
+                Platform.runLater(() -> {
+                    console.appendText("Error: " + f.getName() + " Please check manually\n"
+                    +"at " + f.getAbsolutePath() + "\n");
+                });
             }
             
         }
@@ -65,12 +72,20 @@ if (f.isDirectory()) {
                     String targetPathString = sl.resolveTarget();
                     File targetFile = new File(targetPathString);
                     if (!targetFile.isFile() && targetPathString.endsWith(".exe")) {
-                        console.appendText("Found: " + f.getName() + "\n");
-                        filesToDelete.add(f);
-                        list.appendText(f.getName() + "\n");
-                        Path fPath = f.toPath();
-                        fPath = fPath.toRealPath();
-                        list.appendText("Target: " + fPath + "\n\n");
+                        Platform.runLater(() -> {
+                            try{
+                                console.appendText("Found: " + f.getName() + "\n");
+                                filesToDelete.add(f);
+                                list.appendText(f.getName() + "\n");
+                                Path fPath = f.toPath();
+                                fPath = fPath.toRealPath();
+                                list.appendText("Target: " + fPath + "\n\n");
+                            } catch(Exception e) {
+                                console.appendText("Error: " + f.getName() + " Please check manually\n"
+                                +"at " + f.getAbsolutePath() + "\n");
+                            }
+                            
+                        });
                     }
                 } catch (Exception e) {
                     console.appendText("Error: " + f.getName() + " Please check manually\n"
@@ -89,19 +104,30 @@ if (f.isDirectory()) {
         String pathString = pathTextField.getText();
         disableAllButtons();
         console.appendText("Scanning: "+ pathString + "\n");
-        try{
-            files.clear();
-            File folderToScan = new File(pathString); 
-            if(!folderToScan.exists()){
-                throw new Exception();
+        files.clear();
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                try{
+                    File folderToScan = new File(pathString); 
+                    if(!folderToScan.exists()){
+                        throw new Exception();
+                    }
+                    listAllFiles(folderToScan);         
+                } catch(Exception e){
+                    Platform.runLater(() -> {
+                        console.appendText("Error: Invalid path\n\n");
+                    });
+                }
+                return null;
             }
-            listAllFiles(folderToScan);      
+        };
+        task.setOnSucceeded(e -> {
+            console.appendText("\nScan complete\n\n");
             scanShortcuts(files);
-        } catch(Exception e){
-            console.appendText("Error: Invalid path\n\n");
-        }
-                
-        enableAllButtons();
+            enableAllButtons();
+        });
+        new Thread(task).start();
     }
     @FXML
     private void onDeleteButton(){
@@ -125,7 +151,7 @@ if (f.isDirectory()) {
         if(new File(pathTextField.getText()).exists()){
             directoryChooser.setInitialDirectory(new File(pathTextField.getText()));
         } else {
-            directoryChooser.setInitialDirectory(new File(desktopPath));
+            directoryChooser.setInitialDirectory(new File(userDesktopPath));
         }
         directoryChooser.setTitle("Select Folder");
         File selectedDirectory = directoryChooser.showDialog(null);
@@ -139,10 +165,15 @@ if (f.isDirectory()) {
     }
 
     @FXML
-    private void onDesktopSelected(){
-        String desktopPath = System.getProperty("user.home") + File.separator +"Desktop";
-        pathTextField.setText(desktopPath);
-        console.appendText("Selected: " + desktopPath + "\n\n");
+    private void onUserDesktopSelected(){
+        pathTextField.setText(userDesktopPath);
+        console.appendText("Selected: " + userDesktopPath + "\n\n");
+    }
+
+    @FXML
+    private void onSystemDesktopSelected(){
+        pathTextField.setText(systemDesktopPath);
+        console.appendText("Selected: " + systemDesktopPath + "\n\n");
     }
 
     @FXML
