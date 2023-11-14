@@ -12,4 +12,4 @@ The delete button will delete all listed dead shortcuts
 
 Requirements:
 Windows, 
-Java
+Java 10
