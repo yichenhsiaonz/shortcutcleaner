@@ -96,14 +96,17 @@ public class ScanWindowController {
                         });
                     }
                 } catch (Exception e) {
-                    console.appendText("Error: " + f.getName() + " Please check manually\n"
-                    +"at " + f.getAbsolutePath() + "\n");
-
+                    Platform.runLater(() -> {
+                        console.appendText("Error: " + f.getName() + " Please check manually\n"
+                        +"at " + f.getAbsolutePath() + "\n");
+                    });
                 }  
             }
         }
         if(filesToDelete.size() == 0){
-            console.appendText("No dead shortcuts found\n\n");
+            Platform.runLater(() -> {
+                console.appendText("No dead shortcuts found\n\n");
+            });
         }
     }
 
