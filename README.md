@@ -1,10 +1,12 @@
 # shortcutcleaner
 
-A Javafx app for Windows to scan desktop and start menu for dead shortcuts (shortcuts with original file missing). Bundled with a Java runtime image so that Java isn't required.
+A Javafx app for Windows to scan desktop and start menu for dead shortcuts (shortcuts with original file missing).
 
 # Requirements:
 
 Windows
+
+Java 17 (You can download here: https://github.com/corretto/corretto-17/releases)
 
 # Usage
 
